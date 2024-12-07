@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}My Activity - UDiplom{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Левая панель с табами -->
+    <div class="col-md-3">
+        <div class="list-group" id="activity-tabs" role="tablist">
+            <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#my-works" role="tab">
+                My Works
+            </a>
+            <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#my-news" role="tab">
+                My News
+            </a>
+            <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#my-comments" role="tab">
+                My Comments
+            </a>
+        </div>
+    </div>
+
+    <!-- Правая панель с контентом -->
+    <div class="col-md-9">
+        <div class="tab-content">
+            <!-- My Works -->
+            <div class="tab-pane fade show active" id="my-works" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3>My Works</h3>
+                    <a href="{% url 'create_work' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i> Create Work
+                    </a>
+                </div>
+
+                {% if works_list %}
+                    {% for work in works_list %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="card-title">{{ work.title }}</h5>
+                                        <p class="card-text">{{ work.description|truncatewords:30 }}</p>
+                                        <small class="text-muted">Uploaded on {{ work.created_at|date:"d M Y" }}</small>
+                                    </div>
+                                    <div class="btn-group">
+                                        <a href="{% url 'edit_work' work.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteWorkModal{{ work.id }}">
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center">You haven't uploaded any works yet.</p>
+                {% endif %}
+            </div>
+
+            <!-- My News -->
+            <div class="tab-pane fade" id="my-news" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3>My News</h3>
+                    <a href="{% url 'create_news' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i> Create News
+                    </a>
+                </div>
+
+                {% if news_list %}
+                    {% for news in news_list %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="card-title">{{ news.title }}</h5>
+                                        <p class="card-text">{{ news.description|truncatewords:30 }}</p>
+                                        <small class="text-muted">Published on {{ news.created_at|date:"d M Y" }}</small>
+                                    </div>
+                                    <div class="btn-group">
+                                        <a href="{% url 'edit_news' news.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteNewsModal{{ news.id }}">
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center">You haven't published any news yet.</p>
+                {% endif %}
+            </div>
+
+            <!-- My Comments -->
+            <div class="tab-pane fade" id="my-comments" role="tabpanel">
+                <h3 class="mb-4">My Comments</h3>
+
+                {% if comments_list %}
+                    {% regroup comments_list by work as work_comments %}
+                    {% for work_group in work_comments %}
+                        <div class="card mb-3">
+                            <div class="card-header" id="work-{{ work_group.grouper.id }}">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#comments-{{ work_group.grouper.id }}">
+                                        {{ work_group.grouper.title }} ({{ work_group.list|length }} comments)
+                                    </button>
+                                </h5>
+                            </div>
+
+                            <div id="comments-{{ work_group.grouper.id }}" class="collapse">
+                                <div class="card-body">
+                                    {% for comment in work_group.list %}
+                                        <div class="comment mb-3 pb-3 border-bottom">
+                                            <p>{{ comment.content }}</p>
+                                            <small class="text-muted">
+                                                Commented on {{ comment.created_at|date:"d M Y" }}
+                                                <a href="{% url 'work_detail' work_group.grouper.id %}">View work</a>
+                                            </small>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center">You haven't made any comments yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальные окна для подтверждения удаления -->
+{% for work in works_list %}
+    <div class="modal fade" id="deleteWorkModal{{ work.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete Work</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete "{{ work.title }}"?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="post" action="{% url 'delete_work' work.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+{% for news in news_list %}
+    <div class="modal fade" id="deleteNewsModal{{ news.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete News</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete "{{ news.title }}"?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="post" action="{% url 'delete_news' news.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Работы - UDiplom{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-9">
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            {% for work in works_list %}
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ work.title }}</h5>
+                        <p class="card-text">{{ work.description|truncatewords:30 }}</p>
+                        <div class="tags mb-2">
+                            {% for tag in work.tags.all %}
+                                <span class="badge bg-secondary">{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">
+                                    <i class="bi bi-heart-fill"></i> {{ work.likes_count }}
+                                    <i class="bi bi-hand-thumbs-down-fill"></i> {{ work.dislikes_count }}
+                                    <i class="bi bi-eye-fill"></i> {{ work.views_count }}
+                                </small>
+                            </div>
+                            <small class="text-muted">{{ work.created_at|date:"d.m.Y" }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    
+        {% include "includes/pagination.html" %}
+    </div>
+
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Фильтры</h5>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="mb-3">
+                        <label class="form-label">Сортировать по:</label>
+                        <select name="sort" class="form-select">
+                            <option value="date">Дате публикации</option>
+                            <option value="likes">Лайкам</option>
+                            <option value="views">Просмотрам</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Университет:</label>
+                        <select name="university" class="form-select">
+                            <option value="">Все</option>
+                            {% for university in universities %}
+                                <option value="{{ university.id }}">{{ university.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Факультет:</label>
+                        <select name="faculty" class="form-select">
+                            <option value="">Все</option>
+                            {% for faculty in faculties %}
+                                <option value="{{ faculty.id }}">{{ faculty.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Применить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

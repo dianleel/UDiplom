@@ -1,0 +1,148 @@
+{# base.html #}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}UDiplom{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+    <style>
+        .current-page-indicator {
+            padding: 10px 0;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        .nav-link {
+            color: #6c757d;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #0d6efd;
+        }
+        .nav-link.active {
+            color: #0d6efd !important;
+            font-weight: bold;
+        }
+        .logo-img {
+            height: 40px;
+            width: auto;
+            transition: transform 0.3s ease;
+        }
+        .logo-img:hover {
+            transform: scale(1.05);
+        }
+        .search-form {
+            max-width: 400px;
+        }
+        @media (max-width: 991px) {
+            .search-form {
+                width: 100% !important;
+                margin: 1rem 0;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'news' %}">
+                <img src="/media/logoUD.png" alt="UDiplom" class="logo-img">
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <!-- Основная навигация -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'news' %}active{% endif %}" 
+                           href="{% url 'news' %}">
+                           <i class="bi bi-newspaper"></i> News
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'works' %}active{% endif %}" 
+                           href="{% url 'works' %}">
+                           <i class="bi bi-file-earmark-text"></i> Works
+                        </a>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'my_activity' %}active{% endif %}" 
+                           href="{% url 'my_activity' %}">
+                           <i class="bi bi-activity"></i> My Activity
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <!-- Поиск -->
+                <form class="d-flex search-form mx-3">
+                    <div class="input-group">
+                        <input class="form-control" type="search" placeholder="Поиск..." aria-label="Search">
+                        <button class="btn btn-outline-success" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Авторизация -->
+                <div class="d-flex align-items-center">
+                    {% if user.is_authenticated %}
+                        <span class="navbar-text me-3">
+                            Hello, {{ user.username }}!
+                        </span>
+                        <a href="{% url 'profile' %}" class="btn btn-outline-primary me-2">
+                            <i class="bi bi-person"></i> Профиль
+                        </a>
+                        <form method="post" action="{% url 'logout' %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="bi bi-box-arrow-right"></i> Выйти
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">
+                            <i class="bi bi-box-arrow-in-right"></i> Log In
+                        </a>
+                        <a href="{% url 'signup' %}" class="btn btn-outline-success">
+                            <i class="bi bi-person-plus"></i> Sign Up
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Индикатор текущей страницы -->
+    <div class="current-page-indicator">
+        <div class="container">
+            <h4 class="m-0">
+                {% block page_indicator %}
+                {% if request.resolver_match.url_name == 'news' %}
+                    <i class="bi bi-newspaper"></i> Новости
+                {% elif request.resolver_match.url_name == 'works' %}
+                    <i class="bi bi-file-earmark-text"></i> Работы
+                {% elif request.resolver_match.url_name == 'my_activity' %}
+                    <i class="bi bi-activity"></i> Моя активность
+                {% elif request.resolver_match.url_name == 'profile' %}
+                    <i class="bi bi-person"></i> Профиль
+                {% endif %}
+                {% endblock %}
+            </h4>
+        </div>
+    </div>
+
+    <main class="container py-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
